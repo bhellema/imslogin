@@ -22,9 +22,11 @@ The authentication token is stored securely in your home directory as `.aem-impo
 2. Install dependencies:
 ```bash
 npm install
+
 ```
 3. Create a `.env` file with your IMS configuration (see `.env.example`)
 4. Run the application:
+
 ```bash
 node src/bin.js
 ```

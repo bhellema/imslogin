@@ -11,7 +11,9 @@ dotenv.config();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
-const port = process.env.PORT || 30002;
+const port = process.env.PORT || 30002
+const IMS_STAGE = 'https://ims-na1-stg1.adobelogin.com';
+const IMS_PROD = 'https://ims-na1.adobelogin.com';
 
 const server = http.createServer(app);
 
@@ -100,14 +102,13 @@ function shutdownServer(code) {
 }
 
 // Start the server
-server.listen(port, () => {
-  console.log(`Server running at localhost:${port}`);
-});
+server.listen(port);
 
 async function main() {
-  const redirectURL = new URL('/ims/authorize/v3', process.env.IMS_STAGE);
+  const imsUrl = process.env.ENVIRONMENT === 'stg' ? IMS_STAGE : IMS_PROD;
+  const redirectURL = new URL('/ims/authorize/v3', imsUrl);
   redirectURL.searchParams.set('response_type', 'token');
-  redirectURL.searchParams.set('client_id', process.env.IMS_CLIENT_ID);
+  redirectURL.searchParams.set('client_id', 'aem-import-helper');
   redirectURL.searchParams.set('scope', 'AdobeID,openid');
   redirectURL.searchParams.set('locale', 'en_US');
   redirectURL.searchParams.set('redirect_uri', 'http://localhost:30002');
