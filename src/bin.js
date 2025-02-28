@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import open from 'open';
 import express from 'express';
 import https from 'https';
@@ -6,7 +5,6 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import keychain from 'keychain';
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -77,48 +75,6 @@ app.get('/', async (req, res) => {
       </body>
     </html>
   `);
-  
-
-  // if (req.query.code) {
-  //   const formData = new FormData();
-  //   formData.append('grant_type', 'authorization_code');
-  //   formData.append('client_id', process.env.IMS_CLIENT_ID);
-  //   formData.append('code', req.query.code);
-  //   formData.append('client_secret', process.env.IMS_CLIENT_SECRET);
-  //   formData.append('redirect_uri', process.env.IMS_REDIRECT_URI);
-  //   const result = await fetch(process.env.IMS_STAGE + "/ims/token/v3", {
-  //     method: 'POST',
-  //     body: formData
-  //   });
-
-  //   const data = await result.json();
-  //   const {
-  //     access_token,
-  //     refresh_token,
-  //     expires_in,
-  //   } = data;
-
-  //   res.send('Authentication successful! You can close this window.');
-
-  //  // store the access_token in the user's home directory in a file called .aem-import-helper
-  //  const homeDir = process.env.HOME;
-  //  const filePath = path.join(homeDir, '.aem-import-helper');
-
-  //  if (fs.existsSync(filePath)) {
-  //   fs.unlinkSync(filePath);
-  //  }
-
-  //  // save the access_token, refresh_token, and expires_in to the file as json with spaces between the properties
-  //  fs.writeFileSync(filePath, JSON.stringify({
-  //   access_token,
-  //   refresh_token,
-  //   expires_in,
-  //  }, null, 2));
-   
-  //  console.debug('Access token saved to:', filePath);
-
-  //  shutdownServer();
-  // }
 });
 
 function shutdownServer(code) {
