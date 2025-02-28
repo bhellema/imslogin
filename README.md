@@ -24,7 +24,7 @@ The authentication token is stored securely in your home directory as `.aem-impo
 npm install
 
 ```
-3. Create a `.env` file with your IMS configuration (see `.env.example`)
+3. Create a `.env` file and add ENVIRONMENT=stg to target IMS stage, otherwise it defaults to production.
 4. Run the application:
 
 ```bash
