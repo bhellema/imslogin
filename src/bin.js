@@ -1,10 +1,11 @@
 import open from 'open';
 import express from 'express';
-import https from 'https';
+import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import os from 'os';
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -12,13 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = process.env.PORT || 30002;
 
-const sslOptions = {
-  key: fs.readFileSync(path.join(__dirname, '../certs/localhost.key')),
-  cert: fs.readFileSync(path.join(__dirname, '../certs/localhost.crt'))
-};
-
-// Create HTTPS server
-const server = https.createServer(sslOptions, app);
+const server = http.createServer(app);
 
 /**
  * Handle the response from the token response from IMS.
@@ -26,18 +21,38 @@ const server = https.createServer(sslOptions, app);
 app.post('/token', express.json(), async (req, res) => {
   const { access_token } = req.body;
   
-  // Save the token
-  const homeDir = process.env.HOME;
+  // Get the home directory in a cross-platform way
+  const homeDir = os.homedir();
   const filePath = path.join(homeDir, '.aem-import-helper');
   
-  fs.writeFileSync(filePath, JSON.stringify({
-    access_token,
-    expires_in: 3600 // You might want to get this from the hash params too
-  }, null, 2));
-  
-  // send 200 so the fetch can resolve
-  res.sendStatus(200);
-  shutdownServer();
+  try {
+    // Write file with appropriate permissions for the platform
+    if (process.platform === 'win32') {
+      // Windows: Write file first
+      fs.writeFileSync(filePath, JSON.stringify({
+        access_token,
+        expires_in: 3600 
+      }, null, 2));
+      
+      // Then set Windows-appropriate permissions (owner-only access)
+      const { exec } = await import('child_process');
+      exec(`icacls "${filePath}" /inheritance:r /grant:r "%USERNAME%":F`);
+    } else {
+      // Unix/Mac: Use mode flag
+      fs.writeFileSync(filePath, JSON.stringify({
+        access_token,
+        expires_in: 3600 
+      }, null, 2), { mode: 0o600 });
+    }
+    
+    // send 200 so the fetch can resolve
+    res.sendStatus(200);
+    shutdownServer();
+  } catch (error) {
+    console.error('Error saving token:', error);
+    res.sendStatus(500);
+    shutdownServer(1);
+  }
 });
 
 
@@ -86,17 +101,16 @@ function shutdownServer(code) {
 
 // Start the server
 server.listen(port, () => {
-  console.log(`Server running at https://localhost:${port}`);
+  console.log(`Server running at localhost:${port}`);
 });
 
 async function main() {
   const redirectURL = new URL('/ims/authorize/v3', process.env.IMS_STAGE);
-  // redirectURL.searchParams.set('response_type', 'code');
   redirectURL.searchParams.set('response_type', 'token');
   redirectURL.searchParams.set('client_id', process.env.IMS_CLIENT_ID);
   redirectURL.searchParams.set('scope', 'AdobeID,openid');
   redirectURL.searchParams.set('locale', 'en_US');
-  // redirectURL.searchParams.set('redirect_uri', process.env.IMS_REDIRECT_URI);
+  redirectURL.searchParams.set('redirect_uri', 'http://localhost:30002');
   redirectURL.searchParams.set('target', '_blank');
   await open(redirectURL.toString());
 }

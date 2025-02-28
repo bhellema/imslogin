@@ -13,10 +13,8 @@
   },
   "private": true,
   "dependencies": {
-    "@identity/imslib": "0.46.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "node-fetch": "^3.3.2",
     "open": "10.1.0"
   },
   "devDependencies": {
